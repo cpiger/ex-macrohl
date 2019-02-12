@@ -32,26 +32,32 @@ endif
 if !exists('g:ex_macrohl_enable_help')
     let g:ex_macrohl_enable_help = 1
 endif
+let g:exmacrohl_filename = '-MacroHL-'
 
 "}}}
 
 " commands {{{1
 
-command! EXMacroHLToggle call exmacrohl#toggle_window()
-command! EXMacroHLOpen call exmacrohl#open_window()
-command! EXMacroHLClose call exmacrohl#close_window()
+command! EXMHToggle call exmacrohl#toggle_window()
+command! EXMHOpen call exmacrohl#open_window()
+command! EXMHClose call exmacrohl#close_window()
+command -narg=? EXMH call exmacrohl#initmacrolist('<args>')
+" command ExmhSelectToggle call s:exMH_ToggleWindow('Select')
+" command ExmhToggle call s:exMH_ToggleWindow('')
+" command -narg=? ExmhHL call exmacrohl#initmacrolist('<args>')
 "}}}
 
 " default key mappings {{{1
-call exmacrohl#register_hotkey( 1  , 1, '?'            , ":call exmacrohl#toggle_help()<CR>"           , 'Toggle help.' )
+call exmacrohl#register_hotkey( 1  , 1, '?'               , ":call exmacrohl#toggle_help()<CR>"           , 'Toggle help.' )
 if has('gui_running')
-    call exmacrohl#register_hotkey( 2  , 1, '<ESC>'           , ":EXMacroHLClose<CR>"                         , 'Close window.' )
+call exmacrohl#register_hotkey( 2  , 1, '<ESC>'           , ":EXMHClose<CR>"                         , 'Close window.' )
 else
-    call exmacrohl#register_hotkey( 2  , 1, '<leader><ESC>'   , ":EXMacroHLClose<CR>"                         , 'Close window.' )
+call exmacrohl#register_hotkey( 2  , 1, '<leader><ESC>'   , ":EXMHClose<CR>"                         , 'Close window.' )
 endif
-call exmacrohl#register_hotkey( 3  , 1, 'z'         , ":call exmacrohl#toggle_zoom()<CR>"           , 'Zoom in/out project window.' )
-call exmacrohl#register_hotkey( 4  , 1, '<CR>'            , ":call exmacrohl#confirm_select<CR>"      , 'Go to the search result.' )
-call exmacrohl#register_hotkey( 5  , 1, '<2-LeftMouse>'   , ":call exmacrohl#confirm_select<CR>"      , 'Go to the search result.' )
+call exmacrohl#register_hotkey( 3  , 1, 'z'               , ":call exmacrohl#toggle_zoom()<CR>"           , 'Zoom in/out project window.' )
+call exmacrohl#register_hotkey( 4  , 1, '<CR>'            , ":call exmacrohl#confirm_select()<CR>"      , 'Go to the search result.' )
+call exmacrohl#register_hotkey( 5  , 1, '<2-LeftMouse>'   , ":call exmacrohl#confirm_select()<CR>"      , 'Go to the search result.' )
+call exgsearch#register_hotkey( 100, 0, '<leader>hs', ":EXMHToggle<CR>", 'Toggle MacroHighlight window.' )
 "}}}
 
 call ex#register_plugin( 'exmacrohl', { 'actions': ['autoclose'] } )

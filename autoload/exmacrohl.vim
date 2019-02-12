@@ -3,91 +3,6 @@
 " Author       : cpiger@qq.com
 " Description  : 
 " ======================================================================================
-
-" check if plugin loaded
-if exists('loaded_exmacrohighlight') || &cp
-    finish
-endif
-let loaded_exmacrohighlight=1
-
-"/////////////////////////////////////////////////////////////////////////////
-" variables
-"/////////////////////////////////////////////////////////////////////////////
-
-" ======================================================== 
-" gloable varialbe initialization
-" ======================================================== 
-
-" ------------------------------------------------------------------ 
-" Desc: window height for horizon window mode
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_window_height')
-    let g:exMH_window_height = 20
-endif
-
-" ------------------------------------------------------------------ 
-" Desc: window width for vertical window mode
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_window_width')
-    let g:exMH_window_width = 30
-endif
-
-" ------------------------------------------------------------------ 
-" Desc: window height increment value
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_window_height_increment')
-    let g:exMH_window_height_increment = 30
-endif
-
-" ------------------------------------------------------------------ 
-" Desc: window width increment value
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_window_width_increment')
-    let g:exMH_window_width_increment = 50
-endif
-
-" ------------------------------------------------------------------ 
-" Desc: placement of the window
-" 'topleft','botright','belowright'
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_window_direction')
-    let g:exMH_window_direction = 'botright'
-endif
-
-" ------------------------------------------------------------------ 
-" Desc: use vertical or not
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_use_vertical_window')
-    let g:exMH_use_vertical_window = 1
-endif
-
-" ------------------------------------------------------------------ 
-" Desc: set edit mode
-" 'none', 'append', 'replace'
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_edit_mode')
-    let g:exMH_edit_mode = 'replace'
-endif
-
-" ------------------------------------------------------------------ 
-" Desc: set tag select command
-" ------------------------------------------------------------------ 
-
-if !exists('g:exMH_SymbolSelectCmd')
-    let g:exMH_SymbolSelectCmd = 'ts'
-endif
-
-" ======================================================== 
-" local variable initialization
-" ======================================================== 
-
 " ------------------------------------------------------------------ 
 " Desc: title
 " ------------------------------------------------------------------ 
@@ -104,24 +19,20 @@ let s:help_text_short = [
             \ ]
 let s:help_text = s:help_text_short
 
-let s:exMH_select_title = "__exMH_SelectWindow__"
-let s:exMH_short_title = 'Select'
+let s:exMH_select_title = "-MacroHLSelect-"
 let s:exMH_cur_filename = ''
 
 " ------------------------------------------------------------------ 
 " Desc: general
 " ------------------------------------------------------------------ 
-
-let s:exMH_backto_editbuf = 0
-let s:exMH_get_macro_file = 1
 let s:exMH_define_list = [[],[]] " 0: not define group, 1: define group
 let s:exMH_IsEnable = 0
-let s:exMH_Debug = 0
+" let s:exMH_Debug = 0
+let s:exMH_Debug = 1
 
 " ------------------------------------------------------------------ 
 " Desc: select
 " ------------------------------------------------------------------ 
-
 let s:exMH_select_idx = 1
 
 " ------------------------------------------------------------------ 
@@ -194,6 +105,7 @@ endfunction
 
 " exmacrohl#register_hotkey {{{2
 function exmacrohl#register_hotkey( priority, local, key, action, desc )
+    " echomsg "Macro Higlight hotkey"
     call ex#keymap#register( s:keymap, a:priority, a:local, a:key, a:action, a:desc )
 endfunction
 
@@ -238,6 +150,10 @@ function s:on_close()
     let s:zoom_in = 0
     let s:help_open = 0
 
+    if fnamemodify( bufname("%"), ":p:t" ) ==# fnamemodify( s:exMH_cur_filename, ":p:t" )
+        call ex#warning('save w')
+        silent exec "w!"
+    endif
     " go back to edit buffer
     call ex#window#goto_edit_window()
     call ex#hl#clear_target()
@@ -245,13 +161,15 @@ endfunction
 
 function exmacrohl#open_window()
 
-    if exists('g:exES_Macro')
-        if s:exMH_cur_filename != g:exES_Macro
-            call s:exmh_initmacrolist(g:exES_Macro)
+    if exists('g:exmacrohl_filename')
+        if s:exMH_cur_filename != g:exmacrohl_filename
+            " call exmacrohl#initmacrolist(g:exvim_folder.'/'.g:exmacrohl_filename)
+            call exmacrohl#initmacrolist(g:exmacrohl_filename)
         endif
     else
         call ex#warning('macro file not found, please create one in vimentry')
-        call s:exmh_initmacrolist(s:exMH_select_title)
+        " call exmacrohl#initmacrolist(s:exMH_select_title)
+        call exmacrohl#initmacrolist(g:exmacrohl_filename)
     endif
 
     let winnr = winnr()
@@ -311,95 +229,9 @@ function exmacrohl#toggle_zoom()
 endfunction
 
 " ------------------------------------------------------------------ 
-" Desc: Open exMacroHighlight select window 
-" ------------------------------------------------------------------ 
-
-function s:exMH_OpenWindow( short_title ) " <<<
-    " read the file first, if file name changes, reset title.
-    " if s:exMH_cur_filename don't load, we load and do MH init 
-    if exists('g:exES_Macro')
-        if s:exMH_cur_filename != g:exES_Macro
-            call s:exmh_initmacrolist(g:exES_Macro)
-        endif
-    else
-        call ex#warning('macro file not found, please create one in vimentry')
-        call s:exmh_initmacrolist(s:exMH_select_title)
-    endif
-
-    " if need switch window
-    if a:short_title != ''
-        if s:exMH_short_title != a:short_title
-            let _title = '__exMH_' . s:exMH_short_title . 'Window__'
-            if s:exMH_short_title == 'Select'
-                let _title = s:exMH_cur_filename
-            endif
-            if bufwinnr(_title) != -1
-                call exUtility#CloseWindow(_title)
-            endif
-            let s:exMH_short_title = a:short_title
-        endif
-    endif
-
-    let title = '__exMH_' . s:exMH_short_title . 'Window__'
-    " toggle exMH window
-    if a:short_title == 'Select'
-        let title = s:exMH_cur_filename
-    endif
-    " open window
-    if g:exMH_use_vertical_window
-        call exUtility#OpenWindow( title, g:exMH_window_direction, g:exMH_window_width, g:exMH_use_vertical_window, g:exMH_edit_mode, 1, 'g:exMH_Init'.s:exMH_short_title.'Window', 'g:exMH_Update'.s:exMH_short_title.'Window' )
-    else
-        call exUtility#OpenWindow( title, g:exMH_window_direction, g:exMH_window_height, g:exMH_use_vertical_window, g:exMH_edit_mode, 1, 'g:exMH_Init'.s:exMH_short_title.'Window', 'g:exMH_Update'.s:exMH_short_title.'Window' )
-    endif
-endfunction " >>>
-
-" ------------------------------------------------------------------ 
-" Desc: Toggle the window
-" ------------------------------------------------------------------ 
-
-function s:exMH_ToggleWindow( short_title ) " <<<
-    " read the file first, if file name changes, reset title.
-    " if s:exMH_cur_filename don't load, we load and do MH init 
-    if exists('g:exES_Macro')
-        if s:exMH_cur_filename != g:exES_Macro
-            call s:exmh_initmacrolist(g:exES_Macro)
-        endif
-    else
-        call ex#warning('macro file not found, please create one in vimentry')
-        call s:exmh_initmacrolist(s:exMH_select_title)
-    endif
-
-    " if need switch window
-    if a:short_title != ''
-        if s:exMH_short_title != a:short_title
-            let _title = '__exMH_' . s:exMH_short_title . 'Window__'
-            if s:exMH_short_title == 'Select'
-                let _title = s:exMH_cur_filename
-            endif
-            if bufwinnr(_title) != -1
-                call exUtility#CloseWindow(_title)
-            endif
-            let s:exMH_short_title = a:short_title
-        endif
-    endif
-
-    let title = '__exMH_' . s:exMH_short_title . 'Window__'
-    " toggle exMH window
-    if a:short_title == 'Select'
-        let title = s:exMH_cur_filename
-    endif
-    if g:exMH_use_vertical_window
-        call exUtility#ToggleWindow( title, g:exMH_window_direction, g:exMH_window_width, g:exMH_use_vertical_window, 'none', 0, 'g:exMH_Init'.s:exMH_short_title.'Window', 'g:exMH_Update'.s:exMH_short_title.'Window' )
-    else
-        call exUtility#ToggleWindow( title, g:exMH_window_direction, g:exMH_window_height, g:exMH_use_vertical_window, 'none', 0, 'g:exMH_Init'.s:exMH_short_title.'Window', 'g:exMH_Update'.s:exMH_short_title.'Window' )
-    endif
-endfunction " >>>
-
-" ------------------------------------------------------------------ 
 " Desc: 
 " ------------------------------------------------------------------ 
-
-function s:exmh_initmacrolist(macrofile_name) " <<<
+function exmacrohl#initmacrolist(macrofile_name) " <<<
     " init file name and read the file into line_list
     let s:exMH_cur_filename = a:macrofile_name
     let line_list = []
@@ -409,14 +241,15 @@ function s:exmh_initmacrolist(macrofile_name) " <<<
     let s:exMH_IsEnable = 1
 
     " update macro list
-    call s:exMH_UpdateMacroList(line_list,0)
+    call s:update_macrolist(line_list,0)
 
     " define syntax
-    call s:exMH_DefineSyntax()
+    call s:definesyntax()
 
     " for debug highlight link
     if s:exMH_Debug == 1
         " inside pattern
+        hi link exMacroDisable      Comment
         hi link exCppSkip           exMacroDisable
         hi link exMacroInside       Normal
         hi link exPreCondit         cPreProc
@@ -457,11 +290,11 @@ function s:exmh_initmacrolist(macrofile_name) " <<<
     endif
 
     " define autocmd for update syntax
-    autocmd BufEnter *.c,*.C,*.c++,*.cc,*.cp,*.cpp,*.cxx,*.h,*.H,*.h++,*.hh,*.hp,*.hpp,*.hxx,*.inl,*.ipp call s:exMH_UpdateSyntax()
-    autocmd BufEnter *.i,*.swg call s:exMH_UpdateSyntax()
-    " DISABLE: autocmd BufEnter *.cs call s:exMH_UpdateSyntax()
+    autocmd BufEnter *.c,*.C,*.c++,*.cc,*.cp,*.cpp,*.cxx,*.h,*.H,*.h++,*.hh,*.hp,*.hpp,*.hxx,*.inl,*.ipp call s:updatesyntax()
+    autocmd BufEnter *.i,*.swg call s:updatesyntax()
+    " DISABLE: autocmd BufEnter *.cs call s:updatesyntax()
     " TODO: the shader still have problem
-    autocmd BufEnter *.hlsl,*.fx,*.fxh,*.cg,*.vsh,*.psh,*.shd,*.glsl call s:exMH_UpdateSyntax()
+    autocmd BufEnter *.hlsl,*.fx,*.fxh,*.cg,*.vsh,*.psh,*.shd,*.glsl call s:updatesyntax()
 
 endfunction " >>>
 
@@ -469,7 +302,7 @@ endfunction " >>>
 " Desc: 
 " ------------------------------------------------------------------ 
 
-function s:exMH_UpdateMacroList(line_list,save_file) " <<<
+function s:update_macrolist(line_list,save_file) " <<<
     " clear the macro list and define list first
     if !empty(s:exMH_define_list)
         if !empty(s:exMH_define_list[0])
@@ -522,21 +355,29 @@ function s:exMH_UpdateMacroList(line_list,save_file) " <<<
     endfor
 
     " save the macro file if needed
-    if a:save_file && (s:exMH_cur_filename !=# s:exMH_select_title)
+    " if a:save_file && (s:exMH_cur_filename !=# s:exMH_select_title)
+    " echomsg 's:exMH_cur_filename '.s:exMH_cur_filename
+    " echomsg 'g: 'g:exvim_folder.'/'.g:exmacrohl_filename
+    " if a:save_file && (s:exMH_cur_filename !=# g:exvim_folder.'/'.g:exmacrohl_filename)
+    " if (s:exMH_cur_filename !=# g:exvim_folder.'/'.g:exmacrohl_filename)
+    " if !a:save_file
+        " call ex#warning('bufname '.fnamemodify( bufname("%"), ":p:t" ))
+        " call ex#warning('bufname '.fnamemodify( s:exMH_cur_filename, ":p:t" ))
         if fnamemodify( bufname("%"), ":p:t" ) ==# fnamemodify( s:exMH_cur_filename, ":p:t" )
+            " call ex#warning('save w')
             silent exec "w!"
         endif
-    endif
+    " endif
 
     " update the macro patterns
-    call s:exMH_UpdateMacroPattern()
+    call s:update_macropattern()
 endfunction " >>>
 
 " ------------------------------------------------------------------ 
 " Desc: 
 " ------------------------------------------------------------------ 
 
-function s:exMH_UpdateMacroPattern() " <<<
+function s:update_macropattern() " <<<
     " update def macro pattern
     let s:def_macro_pattern = '\%(\%(\%(==\|!=\)\s*\)\@<!\<1\>'
     for def_macro in s:exMH_define_list[1]
@@ -568,7 +409,7 @@ endfunction " >>>
 " Desc: 
 " ------------------------------------------------------------------ 
 
-function s:exMH_DefineSyntax() " <<<
+function s:definesyntax() " <<<
     " ------------ simple document -------------
 
     "  exIfEnable/exIfnEnable
@@ -632,7 +473,7 @@ endfunction " >>>
 " Desc: 
 " ------------------------------------------------------------------ 
 
-function s:exMH_UpdateSyntax() " <<<
+function s:updatesyntax() " <<<
     " clear syntax group for re-define
     syntax clear exAndEnable exAndnotEnable exOrDisable exOrnotDisable
     syntax clear exIfEnableStart exIfEnable exIfnEnableStart exIfnEnable
@@ -643,7 +484,7 @@ function s:exMH_UpdateSyntax() " <<<
     " if enable syntax
     if s:exMH_IsEnable == 1
         " re-define syntax
-        call s:exMH_DefineSyntax() 
+        call s:definesyntax() 
     endif
 endfunction " >>>
 
@@ -651,7 +492,7 @@ endfunction " >>>
 " Desc: 
 " ------------------------------------------------------------------ 
 
-function GetMHIndent() " <<<
+function exmacrohl#getmhindent() " <<<
     let cur_line = getline(v:lnum)
     " indent group
     if cur_line =~# ":"
@@ -664,54 +505,21 @@ endfunction " >>>
 " Desc: 
 " ------------------------------------------------------------------ 
 
-function s:exMH_SyntaxHL(b_enable) " <<<
+function exmacrohl#syntaxhl(b_enable) " <<<
     let s:exMH_IsEnable = a:b_enable
     if s:exMH_IsEnable == 1
         echomsg "Macro Higlight: ON "
     else
         echomsg "Macro Higlight: OFF "
     endif
-    call s:exMH_UpdateSyntax()
-endfunction " >>>
-
-" ======================================================== 
-" select window functions
-" ======================================================== 
-
-" ------------------------------------------------------------------ 
-" Desc: Init macro higlihgt select window
-" ------------------------------------------------------------------ 
-
-function ExMH_InitSelectWindow() " <<<
-    " set buffer no modifiable
-    silent! setlocal nonumber
-    " this will help Update symbol relate with it.
-    silent! setlocal buftype=
-    silent! setlocal cursorline
-    
-    " dummy mapping
-
-    " autocmd
-    " au CursorMoved <buffer> :call exUtility#HighlightSelectLine()
-
-    " set indent
-    silent! setlocal cindent
-    silent! setlocal indentexpr=GetMHIndent() " Set the function to do the work.
-    silent! setlocal indentkeys-=: " To make a colon (:) suggest an indentation other than a goto/swich label,
-    silent! setlocal indentkeys+=<:> 
-
-    " syntax highlight
-    syntax match exMH_GroupNameEnable '^.*:\s*'
-    syntax match exMH_GroupNameDisable '^.*:\s\+\[x\]'
-    syntax match exMH_MacroEnable '^\s\s\s\zs\*\S\+$'
-    syntax match exMH_MacroDisable '^\s\s\s\s\zs\S\+$'
+    call s:updatesyntax()
 endfunction " >>>
 
 " ------------------------------------------------------------------ 
 " Desc: Update exMacroHighlight window
 " ------------------------------------------------------------------ 
 
-function ExMH_UpdateSelectWindow() " <<<
+function exmacrohl#update_selectwindow() " <<<
     " call cursor( s:exMH_select_idx, 1)
     " call exUtility#HighlightConfirmLine()
 endfunction " >>>
@@ -731,7 +539,7 @@ function exmacrohl#confirm_select() " <<<
 
         " ------------------------------------------------------
         " directly update the macro list
-        call s:exMH_UpdateMacroList(getline(1,'$'),0)
+        call s:update_macrolist(getline(1,'$'),0)
 
         " update syntax immediately
         call ex#window#goto_edit_window()
@@ -744,7 +552,7 @@ function exmacrohl#confirm_select() " <<<
 
         " ------------------------------------------------------
         " directly update the macro list
-        call s:exMH_UpdateMacroList(getline(1,'$'),0)
+        call s:update_macrolist(getline(1,'$'),0)
 
         " update syntax immediately
         call ex#window#goto_edit_window()
@@ -766,7 +574,7 @@ function exmacrohl#confirm_select() " <<<
 
         " ------------------------------------------------------
         " directly update the macro list
-        call s:exMH_UpdateMacroList(getline(1,'$'),0)
+        call s:update_macrolist(getline(1,'$'),0)
 
         " update syntax immediately
         call ex#window#goto_edit_window()
@@ -814,7 +622,7 @@ function exmacrohl#confirm_select() " <<<
 
     " ------------------------------------------------------
     " directly update the macro list
-    call s:exMH_UpdateMacroList(getline(1,'$'),0)
+    call s:update_macrolist(getline(1,'$'),0)
     " ------------------------------------------------------
     "" update define list on to off
     "if on_to_off != '' 
@@ -835,7 +643,7 @@ function exmacrohl#confirm_select() " <<<
     "    endif
     "endif
     "" update macro patterns
-    "call s:exMH_UpdateMacroPattern()
+    "call s:update_macropattern()
     " ------------------------------------------------------
 
     " update syntax immediately
@@ -843,14 +651,6 @@ function exmacrohl#confirm_select() " <<<
     call ex#window#switch_window()
 
 endfunction " >>>
-
-"/////////////////////////////////////////////////////////////////////////////
-" Commands
-"/////////////////////////////////////////////////////////////////////////////
-
-command ExmhSelectToggle call s:exMH_ToggleWindow('Select')
-command ExmhToggle call s:exMH_ToggleWindow('')
-command -narg=? ExmhHL call s:exMH_SyntaxHL('<args>')
 
 "/////////////////////////////////////////////////////////////////////////////
 " finish
