@@ -42,10 +42,7 @@ let g:exmacrohl_filename = 'macrohl'
 command! EXMHToggle call exmacrohl#toggle_window()
 command! EXMHOpen call exmacrohl#open_window()
 command! EXMHClose call exmacrohl#close_window()
-command -narg=? EXMH call exmacrohl#initmacrolist('<args>')
 
-command! EXMHCWord call exmacrohl#list(expand('<cword>'))
-command! EXMHList call exmacrohl#list_all()
 "}}}
 
 " default key mappings {{{1
@@ -60,7 +57,6 @@ call exmacrohl#register_hotkey( 4  , 1, '<CR>'            , ":call exmacrohl#con
 call exmacrohl#register_hotkey( 5  , 1, '<2-LeftMouse>'   , ":call exmacrohl#confirm_select()<CR>"      , 'Go to the search result.' )
 call exmacrohl#register_hotkey( 6  , 1, 'p'   , ":call exmacrohl#smartpaste()<CR>"      , 'Smart paste.' )
 call exgsearch#register_hotkey( 100, 0, '<leader>hs', ":EXMHToggle<CR>", 'Toggle MacroHighlight window.' )
-" call exgsearch#register_hotkey( 100, 0, '<leader>hs', ":EXMHList<CR>", 'Toggle MacroHighlight window.' )
 "}}}
 
 call ex#register_plugin( 'exmacrohl', { 'actions': ['autoclose'] } )

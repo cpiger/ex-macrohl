@@ -21,7 +21,7 @@ let s:help_text = s:help_text_short
 
 let s:exMH_select_title = "_MacroHLSelect_"
 
-let s:macrohl_file = './macrohl'
+let s:macrohl_file = 'macrohl'
 
 " ------------------------------------------------------------------ 
 " Desc: general
@@ -90,14 +90,6 @@ let s:elif_disable_pattern  = s:elif_and_pattern . s:undef_macro_pattern . s:end
 let s:elifn_enable_pattern  = s:elifn_or_pattern . s:undef_macro_pattern . s:end_pattern
 let s:elifn_disable_pattern = s:elifn_and_pattern . s:def_macro_pattern . s:end_pattern
 
-"/////////////////////////////////////////////////////////////////////////////
-" function defines
-"/////////////////////////////////////////////////////////////////////////////
-
-" ======================================================== 
-" general functions
-" ======================================================== 
-
 " functions {{{1
 " exmacrohl#bind_mappings {{{2
 function exmacrohl#bind_mappings()
@@ -133,18 +125,31 @@ function exmacrohl#toggle_help()
     call ex#hl#clear_confirm()
 endfunction
 
-" exmacrohl#open_window {{{2
-
 function exmacrohl#init_buffer()
+
+    call exmacrohl#initlist()
+
     set filetype=exmacrohl
     augroup exmacrohl
         au! BufWinLeave <buffer> call <SID>on_close()
     augroup END
 
-    if line('$') <= 1 && g:ex_macrohl_enable_help
+    " clear screen and put new result
+    silent exec '1,$d _'
+
+    " add online help 
+    if g:ex_macrohl_enable_help
         silent call append ( 0, s:help_text )
         silent exec '$d _'
+        let start_line = len(s:help_text)
+    else
+        let start_line = 1
     endif
+
+    " read macrohls files
+    let macrohls = readfile(s:macrohl_file)
+    call append( start_line, macrohls )
+
 endfunction
 
 function s:on_close()
@@ -159,8 +164,6 @@ function s:on_close()
 endfunction
 
 function exmacrohl#open_window()
-
-    call exmacrohl#initmacrolist(s:macrohl_file)
 
     let winnr = winnr()
     if ex#window#check_if_autoclose(winnr)
@@ -221,77 +224,6 @@ endfunction
 " ------------------------------------------------------------------ 
 " Desc: 
 " ------------------------------------------------------------------ 
-function exmacrohl#initmacrolist(macrofile_name) " <<<
-    " init file name and read the file into line_list
-    let s:macrohl_file = a:macrofile_name
-    let line_list = []
-    if filereadable(s:macrohl_file) == 1
-        let line_list = readfile(s:macrohl_file)
-    endif
-    let s:exMH_IsEnable = 1
-
-    " update macro list
-    call s:update_macrolist(line_list,0)
-
-    " define syntax
-    call s:definesyntax()
-
-    " for debug highlight link
-    if s:exMH_Debug == 1
-        " inside pattern
-        hi link exMacroDisable      Comment
-        hi link exCppSkip           exMacroDisable
-        " hi link exMacroInside       Normal
-        hi link exPreCondit         cPreProc
-
-        " else disable/enable
-        hi link exElseDisable       exMacroDisable
-        " hi link exElseEnable        Normal
-
-        " logic 
-        " hi link exAndEnable         Normal
-        " hi link exAndnotEnable      Normal
-        hi link exOrDisable         exMacroDisable
-        hi link exOrnotDisable      exMacroDisable
-
-        " if/ifn eanble
-        hi link exIfEnableStart     cPreProc
-        " hi link exIfEnable          Normal
-        hi link exIfnEnableStart    cPreProc
-        " hi link exIfnEnable         Normal
-
-        " if/ifn disable
-        hi link exIfDisable         exMacroDisable
-        hi link exIfDisableStart    exMacroDisable
-        hi link exIfnDisable        exMacroDisable
-        hi link exIfnDisableStart   exMacroDisable
-
-        " elif/elifn enable
-        hi link exElifEnableStart   cPreProc
-        " hi link exElifEnable        Normal
-        hi link exElifnEnableStart  cPreProc
-        " hi link exElifnEnable       Normal
-
-        " elif/elifn disable
-        hi link exElifDisableStart  exMacroDisable 
-        hi link exElifDisable       exMacroDisable 
-        hi link exElifnDisableStart exMacroDisable 
-        hi link exElifnDisable      exMacroDisable 
-    endif
-
-    " define autocmd for update syntax
-    autocmd BufEnter *.c,*.C,*.c++,*.cc,*.cp,*.cpp,*.cxx,*.h,*.H,*.h++,*.hh,*.hp,*.hpp,*.hxx,*.inl,*.ipp call s:updatesyntax()
-    autocmd BufEnter *.i,*.swg call s:updatesyntax()
-    " DISABLE: autocmd BufEnter *.cs call s:updatesyntax()
-    " TODO: the shader still have problem
-    autocmd BufEnter *.hlsl,*.fx,*.fxh,*.cg,*.vsh,*.psh,*.shd,*.glsl call s:updatesyntax()
-
-endfunction " >>>
-
-" ------------------------------------------------------------------ 
-" Desc: 
-" ------------------------------------------------------------------ 
-
 function s:update_macrolist(line_list,save_file) " <<<
     " clear the macro list and define list first
     if !empty(s:exMH_define_list)
@@ -352,7 +284,6 @@ endfunction " >>>
 " ------------------------------------------------------------------ 
 " Desc: 
 " ------------------------------------------------------------------ 
-
 function s:update_macropattern() " <<<
     " update def macro pattern
     let s:def_macro_pattern = '\%(\%(\%(==\|!=\)\s*\)\@<!\<1\>'
@@ -640,14 +571,15 @@ function exmacrohl#set_file( path )
 endfunction
 
 function exmacrohl#smartpaste() " <<<
+    if line(".") < len(s:help_text)+1
+        call cursor(len(s:help_text), 0)
+    endif
     call append('.', getreg())
     normal j
     normal ==
 endfunction " >>>
 
-" exmacrohl#read_macrohls {{{2
-function exmacrohl#list_all()
-
+func exmacrohl#initlist()
     let line_list = []
     if filereadable(s:macrohl_file) == 1
         let line_list = readfile(s:macrohl_file)
@@ -709,63 +641,16 @@ function exmacrohl#list_all()
     " DISABLE: autocmd BufEnter *.cs call s:updatesyntax()
     " TODO: the shader still have problem
     autocmd BufEnter *.hlsl,*.fx,*.fxh,*.cg,*.vsh,*.psh,*.shd,*.glsl call s:updatesyntax()
-
-    " open the macrohl window
-    call exmacrohl#open_window()
-
-    " clear screen and put new result
-    silent exec '1,$d _'
-
-    " add online help 
-    if g:ex_macrohl_enable_help
-        silent call append ( 0, s:help_text )
-        silent exec '$d _'
-        let start_line = len(s:help_text)
-    else
-        let start_line = 1
-    endif
-
-    " read macrohls files
-    let macrohls = readfile(s:macrohl_file)
-    call append( start_line, macrohls )
-endfunction
-
-" exmacrohl#list {{{2
-function exmacrohl#list( pattern )
-    call exmacrohl#list_all()
-    call exmacrohl#filter(a:pattern,0)
-endfunction
-
-" exmacrohl#filter {{{2
-" reverse: 0, 1
-function exmacrohl#filter( pattern, reverse )
-    if a:pattern == ''
-        call ex#warning('Search pattern is empty. Please provide your search pattern')
-        return
-    endif
-
-    if g:ex_macrohl_enable_help
-        let start_line = len(s:help_text)+1
-    else
-        let start_line = 2
-    endif
-    let range = start_line.',$'
-
-    " if reverse search, we first filter out not pattern line, then then filter pattern
-    if a:reverse 
-        silent exec range . 'g/' . a:pattern . '/d'
-    else
-        silent exec range . 'v/' . a:pattern . '/d'
-    endif
-    silent call cursor( start_line, 1 )
-    call ex#hint('Filter: ' . a:pattern )
-endfunction
+endfunc
 
 func exmacrohl#save_macrohl()
     call exmacrohl#open_window()
     call writefile(getline(len(s:help_text)+1,'$'), s:macrohl_file)
     call exmacrohl#close_window()
 endfunc
+
+au! VimEnter * call exmacrohl#initlist()
+au! VimLeave * call exmacrohl#save_macrohl()
 
 "/////////////////////////////////////////////////////////////////////////////
 " finish
