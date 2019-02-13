@@ -32,7 +32,7 @@ endif
 if !exists('g:ex_macrohl_enable_help')
     let g:ex_macrohl_enable_help = 1
 endif
-let g:exmacrohl_filename = '-MacroHL-'
+let g:exmacrohl_filename = '_MacroHL_'
 
 "}}}
 
@@ -57,6 +57,7 @@ endif
 call exmacrohl#register_hotkey( 3  , 1, 'z'               , ":call exmacrohl#toggle_zoom()<CR>"           , 'Zoom in/out project window.' )
 call exmacrohl#register_hotkey( 4  , 1, '<CR>'            , ":call exmacrohl#confirm_select()<CR>"      , 'Go to the search result.' )
 call exmacrohl#register_hotkey( 5  , 1, '<2-LeftMouse>'   , ":call exmacrohl#confirm_select()<CR>"      , 'Go to the search result.' )
+call exmacrohl#register_hotkey( 6  , 1, 'p'   , ":call exmacrohl#smartpaste()<CR>"      , 'Smart paste.' )
 call exgsearch#register_hotkey( 100, 0, '<leader>hs', ":EXMHToggle<CR>", 'Toggle MacroHighlight window.' )
 "}}}
 

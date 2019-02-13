@@ -6,7 +6,7 @@
 " ------------------------------------------------------------------ 
 " Desc: title
 " ------------------------------------------------------------------ 
-let s:title = "-MacroHL-" 
+let s:title = "_MacroHL_" 
 let s:confirm_at = -1
 
 let s:zoom_in = 0
@@ -19,7 +19,7 @@ let s:help_text_short = [
             \ ]
 let s:help_text = s:help_text_short
 
-let s:exMH_select_title = "-MacroHLSelect-"
+let s:exMH_select_title = "_MacroHLSelect_"
 let s:exMH_cur_filename = ''
 
 " ------------------------------------------------------------------ 
@@ -151,7 +151,7 @@ function s:on_close()
     let s:help_open = 0
 
     if fnamemodify( bufname("%"), ":p:t" ) ==# fnamemodify( s:exMH_cur_filename, ":p:t" )
-        call ex#warning('save w')
+        " call ex#warning('save w')
         silent exec "w!"
     endif
     " go back to edit buffer
@@ -650,6 +650,12 @@ function exmacrohl#confirm_select() " <<<
     call ex#window#goto_edit_window()
     call ex#window#switch_window()
 
+endfunction " >>>
+
+function exmacrohl#smartpaste() " <<<
+    call append('.', getreg())
+    normal j
+    normal ==
 endfunction " >>>
 
 "/////////////////////////////////////////////////////////////////////////////
