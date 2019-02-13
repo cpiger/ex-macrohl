@@ -251,24 +251,24 @@ function exmacrohl#initmacrolist(macrofile_name) " <<<
         " inside pattern
         hi link exMacroDisable      Comment
         hi link exCppSkip           exMacroDisable
-        hi link exMacroInside       Normal
+        " hi link exMacroInside       Normal
         hi link exPreCondit         cPreProc
 
         " else disable/enable
         hi link exElseDisable       exMacroDisable
-        hi link exElseEnable        Normal
+        " hi link exElseEnable        Normal
 
         " logic 
-        hi link exAndEnable         Normal
-        hi link exAndnotEnable      Normal
+        " hi link exAndEnable         Normal
+        " hi link exAndnotEnable      Normal
         hi link exOrDisable         exMacroDisable
         hi link exOrnotDisable      exMacroDisable
 
         " if/ifn eanble
         hi link exIfEnableStart     cPreProc
-        hi link exIfEnable          Normal
+        " hi link exIfEnable          Normal
         hi link exIfnEnableStart    cPreProc
-        hi link exIfnEnable         Normal
+        " hi link exIfnEnable         Normal
 
         " if/ifn disable
         hi link exIfDisable         exMacroDisable
@@ -278,9 +278,9 @@ function exmacrohl#initmacrolist(macrofile_name) " <<<
 
         " elif/elifn enable
         hi link exElifEnableStart   cPreProc
-        hi link exElifEnable        Normal
+        " hi link exElifEnable        Normal
         hi link exElifnEnableStart  cPreProc
-        hi link exElifnEnable       Normal
+        " hi link exElifnEnable       Normal
 
         " elif/elifn disable
         hi link exElifDisableStart  exMacroDisable 
@@ -418,34 +418,34 @@ function s:definesyntax() " <<<
     " skip: in exIfEnable( /* #if enable #endif */ ), the skip tell the exIfEnable to find the end by skip the skip_pattern
 
     " --------------- exLogicPatterns ---------------
-    exec 'syn region exAndEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:and_pattern . s:def_macro_pattern . s:end_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
-    exec 'syn region exAndnotEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:andn_pattern . s:undef_macro_pattern . s:end_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
+    " exec 'syn region exAndEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:and_pattern . s:def_macro_pattern . s:end_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
+    " exec 'syn region exAndnotEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:andn_pattern . s:undef_macro_pattern . s:end_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
     exec 'syn region exOrDisable contained extend keepend start=' . '"' . s:or_pattern . s:undef_macro_pattern . s:end_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exCppSkip,exElseEnable,exElifEnableStart,exElifnEnableStart'
     exec 'syn region exOrnotDisable contained extend keepend start=' . '"' . s:orn_pattern . s:def_macro_pattern . s:end_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exCppSkip,exElseEnable,exElifEnableStart,exElifnEnableStart'
 
     " --------------- exIfEnable ---------------
     " if enable(def_macro) else disable
-    exec 'syn region exIfEnableStart start=' . '"' . s:if_enable_pattern . '"' . ' end=".\@=\|$" contains=exIfEnable,exAndEnable,exAndnotEnable'
+    " exec 'syn region exIfEnableStart start=' . '"' . s:if_enable_pattern . '"' . ' end=".\@=\|$" contains=exIfEnable,exAndEnable,exAndnotEnable'
     " NOTE: add if_or_pattern fix bug that #if MACRO_DISABLE || MACRO_ENABLE || MACRO_DISABLE ". NOTE: I not sure if it have any side-effect
-    exec 'syn region exIfEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:if_or_pattern . s:def_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
+    " exec 'syn region exIfEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:if_or_pattern . s:def_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
 
     " --------------- exElifEnable ---------------
     " elif enable(def_macro) else disable
-    exec 'syn region exElifEnableStart contained start=' . '"' . s:elif_enable_pattern . '"' . ' end=".\@=\|$" contains=exElifEnable,exAndEnable,exAndnotEnable'
+    " exec 'syn region exElifEnableStart contained start=' . '"' . s:elif_enable_pattern . '"' . ' end=".\@=\|$" contains=exElifEnable,exAndEnable,exAndnotEnable'
     " add elif_or_pattern will fix a bug that #elif MACRO_ENABLE && !MACRO_ENABLE
-    exec 'syn region exElifEnable contained matchgroup=cPreProc start=' . '"' . s:elif_or_pattern . s:def_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
+    " exec 'syn region exElifEnable contained matchgroup=cPreProc start=' . '"' . s:elif_or_pattern . s:def_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
 
     " --------------- exIfnEnable ---------------
     " ifn enable(undef_macro) else disable
-    exec 'syn region exIfnEnableStart start=' . '"' . s:ifn_enable_pattern . '"' . ' end=".\@=\|$" contains=exIfnEnable,exAndEnable,exAndnotEnable'
+    " exec 'syn region exIfnEnableStart start=' . '"' . s:ifn_enable_pattern . '"' . ' end=".\@=\|$" contains=exIfnEnable,exAndEnable,exAndnotEnable'
     " NOTE: add ifn_or_pattern fix a bug that #if !MACRO_DISABLE || !MACRO_DISABLE || !MACRO_DISABLE ", NOTE: I not sure if it have any side-effect
-    exec 'syn region exIfnEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:ifn_or_pattern . s:undef_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
+    " exec 'syn region exIfnEnable contained extend keepend matchgroup=cPreProc start=' . '"' . s:ifn_or_pattern . s:undef_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
 
     " --------------- exElifnEnable ---------------
     " elifn enable(def_macro) else disable
-    exec 'syn region exElifnEnableStart contained start=' . '"' . s:elifn_enable_pattern . '"' . ' end=".\@=\|$" contains=exElifnEnable,exAndEnable,exAndnotEnable'
+    " exec 'syn region exElifnEnableStart contained start=' . '"' . s:elifn_enable_pattern . '"' . ' end=".\@=\|$" contains=exElifnEnable,exAndEnable,exAndnotEnable'
     " add elifn_or_pattern will fix a bug that #elif !MACRO_ENABLE && MACRO_ENABLE
-    exec 'syn region exElifnEnable contained matchgroup=cPreProc start=' . '"' . s:elifn_or_pattern . s:undef_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
+    " exec 'syn region exElifnEnable contained matchgroup=cPreProc start=' . '"' . s:elifn_or_pattern . s:undef_macro_pattern . s:end_not_and_pattern . '"' . ' skip="#endif\>\_[^\%(\/\*\)]*\*\/" end="^\s*\%(%:\|#\)\s*\%(endif\>\)" contains=exElseDisable,@exEnableContainedGroup'
 
     " --------------- exIfDisable ---------------
     " if disable(undef_macro) else define
