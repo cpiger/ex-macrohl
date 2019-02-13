@@ -3,13 +3,23 @@
 " set buffer no modifiable
 silent! setlocal nonumber
 " this will help Update symbol relate with it.
-silent! setlocal buftype=
+" silent! setlocal buftype=
 silent! setlocal cursorline
 
 " silent! setlocal buftype=nofile
 silent! setlocal bufhidden=hide
 silent! setlocal noswapfile
 silent! setlocal nobuflisted
+
+silent! setlocal buftype=nofile
+" silent! setlocal bufhidden=hide
+" silent! setlocal noswapfile
+" silent! setlocal nobuflisted
+
+" silent! setlocal cursorline
+" silent! setlocal nonumber
+silent! setlocal nowrap
+silent! setlocal statusline=
 
 " dummy mapping
 
@@ -27,7 +37,7 @@ call exmacrohl#bind_mappings()
 " }}}1
 
 " auto command {{{1
-au! VimLeave * call ex#save_restore_info ()
+au! VimLeave * call exmacrohl#save_macrohl()
 " }}}1
 
 " syntax highlight
