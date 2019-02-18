@@ -34,7 +34,7 @@ if !exists('g:ex_macrohl_enable_help')
 endif
 
 let g:exmacrohl_filename = 'macrohl'
-
+let g:ex_macrohl_dir = $HOME.'/.data/.macrohl'
 "}}}
 
 " commands {{{1

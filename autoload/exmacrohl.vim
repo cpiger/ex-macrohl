@@ -165,6 +165,16 @@ endfunction
 
 function exmacrohl#open_window()
 
+    if exists('g:exvim_folder')
+        let s:macrohl_file = g:exvim_folder.'/'.g:exmacrohl_filename
+    else
+        " echomsg "s:macrohl_file not found open"
+        return
+    endif
+    " if filereadable(s:macrohl_file) == 0
+        " call writefile([], s:macrohl_file)
+    " endif
+
     let winnr = winnr()
     if ex#window#check_if_autoclose(winnr)
         call ex#window#close(winnr)
@@ -581,8 +591,14 @@ endfunction " >>>
 
 func exmacrohl#initlist()
     let line_list = []
+    if exists('g:exvim_folder')
+        let s:macrohl_file = g:exvim_folder.'/'.g:exmacrohl_filename
+    endif
     if filereadable(s:macrohl_file) == 1
         let line_list = readfile(s:macrohl_file)
+    else
+        " echomsg "s:macrohl_file not found"
+        return
     endif
     let s:exMH_IsEnable = 1
 
@@ -644,12 +660,14 @@ func exmacrohl#initlist()
 endfunc
 
 func exmacrohl#save_macrohl()
-    call exmacrohl#open_window()
-    call writefile(getline(len(s:help_text)+1,'$'), s:macrohl_file)
-    call exmacrohl#close_window()
+    if filereadable(s:macrohl_file) == 1
+        call exmacrohl#open_window()
+        call writefile(getline(len(s:help_text)+1,'$'), s:macrohl_file)
+        call exmacrohl#close_window()
+    endif
 endfunc
 
-au! VimEnter * call exmacrohl#initlist()
+" au! VimEnter * call exmacrohl#initlist()
 au! VimLeave * call exmacrohl#save_macrohl()
 
 "/////////////////////////////////////////////////////////////////////////////
